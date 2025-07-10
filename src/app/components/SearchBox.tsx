@@ -40,7 +40,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-l-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-l-md bg-white focus:outline-none focus:ring-1 focus:ring-[#712442] focus:border-[#712442] text-sm"
             placeholder={placeholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -49,7 +49,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         </div>
         <button
           type="submit"
-          className="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-r-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 bg-[#712442] hover:bg-[#5e1d36] text-white font-medium rounded-r-md focus:outline-none focus:ring-1 focus:ring-[#712442]"
         >
           Buscar
         </button>

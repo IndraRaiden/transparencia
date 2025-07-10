@@ -88,14 +88,14 @@ export default function SearchPage() {
 
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#712442]"></div>
             </div>
           ) : (
             <div className="space-y-4">
               {results.map(result => (
                 <div key={result.id} className="bg-white border border-gray-200 rounded-md p-4 hover:border-gray-300">
                   <Link href={result.url} className="block">
-                    <p className="text-sm text-blue-600 mb-1">{result.category}</p>
+                    <p className="text-sm text-[#712442] mb-1">{result.category}</p>
                     <h2 className="text-lg font-semibold text-gray-800 mb-2">{result.title}</h2>
                     <p className="text-gray-600">{result.description}</p>
                   </Link>
