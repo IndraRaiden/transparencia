@@ -9,12 +9,49 @@ import PublicidadOficialLinks from "./components/PublicidadOficialLinks";
 import ObligacionesMunicipiosLinks from "./components/ObligacionesMunicipiosLinks";
 import InformacionComplementariaLinks from "./components/InformacionComplementariaLinks";
 import SearchBox from "./components/SearchBox";
+import { supabase } from "./supabaseClient";
+
+interface Categoria {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+}
+
+interface Documento {
+  id: string;
+  nombre: string;
+  url: string;
+  categoria_id: number;
+  created_at?: string;
+}
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoaded(true);
+    
+    // Fetch categories and documents
+    async function fetchData() {
+      try {
+        const [{ data: categoriasData }, { data: docsData }] = await Promise.all([
+          supabase.from('categorias').select('*').order('nombre'),
+          supabase.from('documentos').select('*')
+        ]);
+        
+        setCategorias(categoriasData || []);
+        setDocumentos(docsData || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchData();
   }, []);
 
   return (
@@ -96,6 +133,38 @@ export default function Home() {
             className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-[#712442] p-4 rounded-md"
           />
         </div>
+        
+        {/* Documentos por Categoría */}
+        {categorias.map((categoria, index) => (
+          <div key={categoria.id} className={`transition-all duration-300 delay-${500 + (index * 100)} ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+            <DropdownMenu
+              title={categoria.nombre}
+              icon="📁"
+              className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-full overflow-y-auto">
+                {documentos
+                  .filter(doc => doc.categoria_id === categoria.id)
+                  .map(doc => (
+                    <a 
+                      key={doc.id} 
+                      href={doc.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="p-3 border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 transition-colors flex items-center gap-2"
+                    >
+                      <span className="text-blue-600 text-sm">📄</span>
+                      <span className="text-gray-700">{doc.nombre}</span>
+                    </a>
+                  ))
+                }
+                {documentos.filter(doc => doc.categoria_id === categoria.id).length === 0 && (
+                  <div className="text-gray-500 italic text-sm p-3">No hay documentos en esta categoría</div>
+                )}
+              </div>
+            </DropdownMenu>
+          </div>
+        ))}
         </div>
         
         {/* Footer Section */}
