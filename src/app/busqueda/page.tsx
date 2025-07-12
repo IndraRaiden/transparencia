@@ -1,10 +1,7 @@
 import { Suspense } from 'react';
 import Header from '../components/Header';
 import SearchBox from '../components/SearchBox';
-import dynamic from 'next/dynamic';
-
-// Use dynamic import for client component
-const SearchResults = dynamic(() => import('./search-results'), { ssr: false });
+import SearchClient from './search-client';
 
 function SearchLoading() {
   return (
@@ -25,7 +22,7 @@ export default function SearchPage() {
           <SearchBox placeholder="Buscar en Transparencia" className="mb-6" />
           
           <Suspense fallback={<SearchLoading />}>
-            <SearchResults />
+            <SearchClient />
           </Suspense>
         </div>
       </div>
