@@ -84,58 +84,9 @@ export default function Home() {
             className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-yellow-500 p-4 rounded-md"
           />
         </div>
-
-        {/* IPO de la Ley estatal de transparencia y ley general de transparencia */}
-        <div className={`transition-all duration-300 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <DropdownMenu 
-            title="IPO de la Ley estatal de transparencia y ley general de transparencia"
-            icon="📄"
-            className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-1 max-h-full overflow-y-auto">
-              <IPOTransparenciaLinks />
-            </div>
-          </DropdownMenu>
-        </div>
-
-        {/* Publicidad Oficial */}
-        <div className={`transition-all duration-300 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <DropdownMenu 
-            title="Publicidad oficial"
-            icon="📊"
-            className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1 max-h-full overflow-y-auto">
-              <PublicidadOficialLinks />
-            </div>
-          </DropdownMenu>
-        </div>
-
-        {/* Obligaciones Específicas de los Municipios */}
-        <div className={`transition-all duration-300 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <DropdownMenu 
-            title="Obligaciones específicas de los municipios"
-            icon="🏛️"
-            className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-1 max-h-full overflow-y-auto">
-              <ObligacionesMunicipiosLinks />
-            </div>
-          </DropdownMenu>
-        </div>
-
-        {/* Información complementaria del artículo 70 Ley general de transparencia */}
-        <div className={`transition-all duration-300 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <LinkCard 
-            href="/informacion-complementaria-art70" 
-            text="Información complementaria del artículo 70 Ley general de transparencia"
-            icon="📋"
-            className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-[#712442] p-4 rounded-md"
-          />
-        </div>
         
-        {/* Documentos por Categoría */}
-        {categorias.map((categoria, index) => (
+        {/* Documentos por Categoría - displayed in reverse order */}
+        {[...categorias].reverse().map((categoria, index) => (
           <div key={categoria.id} className={`transition-all duration-300 delay-${500 + (index * 100)} ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
             <DropdownMenu
               title={categoria.nombre}
