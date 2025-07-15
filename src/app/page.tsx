@@ -60,15 +60,23 @@ export default function Home() {
         <Header />
         
         {/* Hero Section */}
-        <div className={`mt-6 mb-12 p-8 bg-white border-b-2 border-gray-200 text-center relative transition-all duration-800 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <div className="absolute left-0 bottom-0 w-full h-1 bg-[#712442]"></div>
+        <div className="mt-6 mb-12 relative">
+          {/* Logo positioned on the left */}
+          <div className="absolute left-[-120px] top-0 md:top-1/2 md:transform md:-translate-y-1/2 z-20">
+            <img src="/logos/Escudo_de_Piedras_Negras.svg.png" alt="Logo Gobierno" className="h-32 md:h-52 max-w-full" />
+          </div>
           
-          <div className="relative z-10">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4">Portal de Transparencia</h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">Acceso a información pública, recursos y servicios para la transparencia gubernamental.</p>
+          {/* Centered content */}
+          <div className={`p-8 bg-white border-b-2 border-gray-200 text-center relative transition-all duration-800 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+            <div className="absolute left-0 bottom-0 w-full h-1 bg-[#712442]"></div>
             
-            <div className="max-w-2xl mx-auto">
-              <SearchBox placeholder="Buscar en el portal de transparencia..." />
+            <div className="relative z-10">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 text-center">UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION</h1>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 mt-4">Acceso a información pública, recursos y servicios para la transparencia gubernamental.</p>
+            
+              <div className="max-w-2xl mx-auto">
+                <SearchBox placeholder="Buscar en el portal de transparencia..." />
+              </div>
             </div>
           </div>
         </div>
@@ -121,8 +129,7 @@ export default function Home() {
         {/* Footer Section */}
         <footer className="mt-16 py-8 border-t border-gray-200 text-center text-gray-600">
           <div className="flex flex-col items-center">
-            <img src="/logos/Escudo_de_Piedras_Negras.svg.png" alt="Logo Gobierno" className="h-40 mb-5 max-w-full" />
-            <p>© {new Date().getFullYear()} Portal de Transparencia | Gobierno del Estado</p>
+            <p>© {new Date().getFullYear()} UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION | Gobierno del Estado</p>
           </div>
         </footer>
       </div>
