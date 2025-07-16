@@ -26,7 +26,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="w-full max-w-md rounded-lg shadow-lg p-8 border border-gray-100 bg-white">
-        <h1 className="text-2xl font-bold text-blue-700 mb-6 text-center">Iniciar Sesión</h1>
+        <h1 className="text-2xl font-bold text-[#712442] mb-6 text-center">Iniciar Sesión</h1>
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -63,7 +63,7 @@ export default function LoginPage() {
           )}
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-blue-700 text-white font-semibold rounded-md hover:bg-blue-800 transition-colors disabled:opacity-60"
+            className="w-full py-2 px-4 bg-[#712442] text-white font-semibold rounded-md hover:bg-[#5e1c36] transition-colors disabled:opacity-60"
             disabled={loading}
           >
             {loading ? 'Entrando...' : 'Entrar'}
