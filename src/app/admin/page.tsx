@@ -9,20 +9,31 @@ interface Categoria {
   descripcion?: string;
 }
 
+interface Subcategoria {
+  id: string;
+  nombre: string;
+  categoria: number;
+  created_at?: string;
+}
+
 interface Documento {
   id: string;
   nombre: string;
   url: string;
-  categoria_id: number;
+  subcategoria_id: string;
   created_at?: string;
 }
 
 export default function AdminPage() {
   const router = useRouter();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([]);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<number | string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -48,18 +59,32 @@ export default function AdminPage() {
     };
   }, [router]);
 
-  // Fetch categories and documentos
+  // Fetch categories, subcategories and documentos
   useEffect(() => {
     async function fetchAll() {
       setError(null);
-      const [{ data: categoriasData, error: catError }, { data: docsData, error: docError }] = await Promise.all([
+      const [{ data: categoriasData, error: catError }, { data: subcategoriasData, error: subCatError }, { data: docsData, error: docError }] = await Promise.all([
         supabase.from('categorias').select('*').order('nombre'),
+        supabase.from('subcategorias').select('*').order('nombre'),
         supabase.from('documentos').select('*').order('created_at', { ascending: false }),
       ]);
-      if (catError || docError) setError('Error cargando categorías o documentos');
+      if (catError || subCatError || docError) setError('Error cargando categorías, subcategorías o documentos');
       else {
-        setCategorias(categoriasData || []);
+        const categoriesData = categoriasData || [];
+        // Sort categories numerically using a string-based approach for reliable ordering
+        const sortedCategories = [...categoriesData].sort((a, b) => {
+          // Use string conversion and localeCompare with numeric option for proper numeric sorting
+          return String(a.id).localeCompare(String(b.id), undefined, {numeric: true});
+        });
+        
+        setCategorias(sortedCategories);
+        setSubcategorias(subcategoriasData || []);
         setDocumentos(docsData || []);
+        
+        // Set the first category (alphabetically) as default selected if available
+        if (sortedCategories.length > 0 && !selectedCategoryId) {
+          setSelectedCategoryId(sortedCategories[0].id);
+        }
       }
     }
     fetchAll();
@@ -68,6 +93,90 @@ export default function AdminPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+  };
+  
+  const handleUploadForSelectedSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!selectedSubcategoryId || !selectedCategoryId) {
+      setError('No se ha seleccionado una subcategoría.');
+      return;
+    }
+    
+    // Find the selected subcategory object
+    const subcategoria = subcategorias.find(s => s.id === selectedSubcategoryId);
+    if (!subcategoria) {
+      setError('La subcategoría seleccionada no es válida.');
+      return;
+    }
+    
+    setUploadingId(selectedSubcategoryId);
+    setError(null);
+    setSuccess(null);
+    
+    const form = e.currentTarget;
+    const fileInput = form.elements.namedItem('file') as HTMLInputElement;
+    const customNameInput = form.elements.namedItem('customName') as HTMLInputElement;
+    
+    if (!fileInput?.files?.[0]) {
+      setError('Selecciona un archivo.');
+      setUploadingId(null);
+      return;
+    }
+    
+    if (!customNameInput?.value) {
+      setError('Ingresa un nombre para el documento.');
+      setUploadingId(null);
+      return;
+    }
+    
+    const file = fileInput.files[0];
+    const customName = customNameInput.value;
+    
+    // Upload to Supabase Storage (bucket: 'documentos')
+    const filePath = `${selectedCategoryId}/${selectedSubcategoryId}/${Date.now()}_${file.name}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage.from('documentos').upload(filePath, file);
+    
+    if (uploadError) {
+      setError('Error subiendo archivo: ' + uploadError.message);
+      setUploadingId(null);
+      return;
+    }
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(filePath);
+    
+    // Register in DB
+    const { error: insertError } = await supabase.from('documentos').insert([
+      {
+        nombre: customName,
+        url: urlData?.publicUrl || '',
+        subcategoria_id: selectedSubcategoryId,
+      },
+    ]);
+    
+    if (insertError) {
+      setError('Error registrando documento en la base de datos.');
+      setUploadingId(null);
+      return;
+    }
+    
+    setSuccess('Archivo subido correctamente.');
+    setUploadingId(null);
+    form.reset();
+    
+    // Reset the file input display
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      const fileInputLabel = fileInputRef.current.previousElementSibling as HTMLElement;
+      if (fileInputLabel && fileInputLabel.tagName === 'SPAN') {
+        fileInputLabel.textContent = 'Elegir documento';
+      }
+    }
+    
+    // Refresh document list
+    const { data: docsData, error: docError } = await supabase.from('documentos').select('*').order('created_at', { ascending: false });
+    if (!docError) setDocumentos(docsData || []);
   };
 
   const handleDeleteDocument = async (doc: Documento) => {
@@ -125,9 +234,9 @@ export default function AdminPage() {
     }
   };
 
-  const handleUpload = async (e: React.FormEvent<HTMLFormElement>, categoria: Categoria) => {
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>, subcategoria: Subcategoria) => {
     e.preventDefault();
-    setUploadingId(categoria.id);
+    setUploadingId(subcategoria.id);
     setError(null);
     setSuccess(null);
     const form = e.currentTarget;
@@ -146,7 +255,7 @@ export default function AdminPage() {
     const file = fileInput.files[0];
     const customName = customNameInput.value;
     // Upload to Supabase Storage (bucket: 'documentos')
-    const filePath = `${categoria.id}/${Date.now()}_${file.name}`;
+    const filePath = `${subcategoria.categoria}/${subcategoria.id}/${Date.now()}_${file.name}`;
     const { data: uploadData, error: uploadError } = await supabase.storage.from('documentos').upload(filePath, file);
     if (uploadError) {
       setError('Error subiendo archivo: ' + uploadError.message);
@@ -160,7 +269,7 @@ export default function AdminPage() {
       {
         nombre: customName,
         url: urlData?.publicUrl || '',
-        categoria_id: categoria.id,
+        subcategoria_id: subcategoria.id,
       },
     ]);
     if (insertError) {
@@ -200,95 +309,171 @@ export default function AdminPage() {
         {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
         {success && <div className="mb-4 text-green-600 text-center">{success}</div>}
         <div className="space-y-8">
+          {/* Category selector */}
+          <div className="mb-6">
+            <label htmlFor="category-select" className="block text-[#712442] font-medium mb-2">
+              Seleccionar categoría:
+            </label>
+            <select
+              id="category-select"
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#712442]/50"
+              value={selectedCategoryId || ''}
+              onChange={(e) => {
+                const newCategoryId = e.target.value ? Number(e.target.value) : null;
+                setSelectedCategoryId(newCategoryId);
+                setSelectedSubcategoryId(null); // Reset subcategory selection when category changes
+                // Reset file input when changing category
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+            >
+              <option value="">-- Seleccionar categoría --</option>
+              {[...categorias]
+                .sort((a, b) => String(a.id).localeCompare(String(b.id), undefined, {numeric: true}))
+                .map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.nombre}
+                  </option>
+                ))}
+            </select>
+          </div>
+          
+          {/* Subcategory selector - only shown if a category is selected */}
+          {selectedCategoryId && (
+            <div className="mb-6">
+              <label htmlFor="subcategory-select" className="block text-[#712442] font-medium mb-2">
+                Seleccionar subcategoría:
+              </label>
+              <select
+                id="subcategory-select"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#712442]/50"
+                value={selectedSubcategoryId || ''}
+                onChange={(e) => {
+                  setSelectedSubcategoryId(e.target.value || null);
+                  // Reset file input when changing subcategory
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+              >
+                <option value="">-- Seleccionar subcategoría --</option>
+                {subcategorias
+                  .filter(subcat => subcat.categoria === selectedCategoryId)
+                  .sort((a, b) => a.nombre.localeCompare(b.nombre, undefined, {numeric: true}))
+                  .map((subcat) => (
+                    <option key={subcat.id} value={subcat.id}>
+                      {subcat.nombre}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+
           {categorias.length === 0 ? (
             <div className="text-gray-500 text-center">No hay categorías registradas.</div>
+          ) : !selectedCategoryId ? (
+            <div className="text-gray-500 text-center">Selecciona una categoría para ver sus detalles.</div>
+          ) : !selectedSubcategoryId ? (
+            <div className="text-gray-500 text-center">Selecciona una subcategoría para administrar sus documentos.</div>
           ) : (
-            [...categorias].reverse().map((cat) => (
-              <div key={cat.id} className="border border-gray-200 rounded-md p-6 mb-6">
-                <div className="font-semibold text-[#712442] mb-2">{cat.nombre}</div>
-                <div className="text-gray-500 mb-4">{cat.descripcion}</div>
-                {/* List documents for this category */}
-                <div className="mb-4">
-                  <div className="font-semibold mb-2">Archivos registrados:</div>
-                  {documentos.filter(doc => doc.categoria_id === cat.id).length === 0 ? (
-                    <div className="flex items-center justify-center p-4 bg-gray-50 border border-dashed border-gray-300 rounded-md">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                      <span className="text-gray-500">No se han elegido documentos para esta categoría</span>
-                    </div>
-                  ) : (
-                    <ul className="space-y-1">
-                      {documentos.filter(doc => doc.categoria_id === cat.id).map(doc => (
-                        <li key={doc.id} className="flex items-center gap-2 justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#712442]/90 font-medium">{doc.nombre}</span>
-                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-[#712442]/70 underline hover:text-[#712442]/80">Ver/Descargar</a>
+            (() => {
+              const cat = categorias.find(c => c.id === selectedCategoryId);
+              const subcat = subcategorias.find(s => s.id === selectedSubcategoryId);
+              if (!cat || !subcat) return null;
+              
+              return (
+                <div key={`${cat.id}-${subcat.id}`} className="border border-gray-200 rounded-md p-6 mb-6">
+                  <div className="font-semibold text-[#712442] text-lg mb-2">{cat.nombre}</div>
+                  <div className="text-gray-500 mb-4">{cat.descripcion}</div>
+                  <div className="font-semibold text-[#712442] mb-2 mt-4 border-t pt-4">{subcat.nombre}</div>
+                      
+                      {/* List documents for this subcategory */}
+                      <div className="mb-4">
+                        <div className="font-medium mb-2">Archivos registrados:</div>
+                        {documentos.filter(doc => doc.subcategoria_id === selectedSubcategoryId).length === 0 ? (
+                          <div className="flex items-center justify-center p-4 bg-gray-50 border border-dashed border-gray-300 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <span className="text-gray-500">No se han elegido documentos para esta subcategoría</span>
                           </div>
-                          <button 
-                            type="button"
-                            className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                            onClick={() => handleDeleteDocument(doc)}
-                            disabled={deletingId === doc.id}
-                          >
-                            {deletingId === doc.id ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            )}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                        ) : (
+                          <ul className="space-y-1">
+                            {documentos.filter(doc => doc.subcategoria_id === selectedSubcategoryId).map(doc => (
+                              <li key={doc.id} className="flex items-center gap-2 justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[#712442]/90 font-medium">{doc.nombre}</span>
+                                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-[#712442]/70 underline hover:text-[#712442]/80">Ver/Descargar</a>
+                                </div>
+                                <button 
+                                  type="button"
+                                  className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                                  onClick={() => handleDeleteDocument(doc)}
+                                  disabled={deletingId === doc.id}
+                                >
+                                  {deletingId === doc.id ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  )}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      
+                      {/* Upload form */}
+                      <form className="flex flex-col sm:flex-row gap-3 items-center" onSubmit={handleUploadForSelectedSubcategory}>
+                        <input
+                          type="text"
+                          name="customName"
+                          placeholder="Nombre del documento"
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded"
+                          required
+                        />
+                        <div className="flex-1 relative">
+                          <label className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors w-full overflow-hidden whitespace-nowrap">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#712442]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            <span className="text-sm truncate">Elegir documento</span>
+                            <input 
+                              type="file" 
+                              ref={fileInputRef}
+                              name="file" 
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                              required 
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.png,.jpg,.jpeg,.gif"
+                              onChange={(e) => {
+                                // Update the label text with the selected file name
+                                if (e.target.files && e.target.files[0]) {
+                                  const fileName = e.target.files[0].name;
+                                  const label = e.target.previousElementSibling as HTMLElement;
+                                  if (label && label.tagName === 'SPAN') {
+                                    label.textContent = fileName.length > 20 ? fileName.substring(0, 17) + '...' : fileName;
+                                  }
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        <button
+                          type="submit"
+                          className="py-2 px-4 bg-[#712442] text-white font-semibold rounded-md hover:bg-[#712442]/80 transition-colors disabled:opacity-60"
+                          disabled={uploadingId === selectedSubcategoryId}
+                        >
+                          {uploadingId === selectedSubcategoryId ? 'Subiendo...' : 'Subir archivo'}
+                        </button>
+                      </form>
                 </div>
-                {/* Upload form */}
-                <form className="flex flex-col sm:flex-row gap-3 items-center" onSubmit={e => handleUpload(e, cat)}>
-                  <input
-                    type="text"
-                    name="customName"
-                    placeholder="Nombre del documento"
-                    className="flex-1 px-2 py-1 border border-gray-300 rounded"
-                    required
-                  />
-                  <div className="flex-1 relative">
-                    <label className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors w-full overflow-hidden whitespace-nowrap">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#712442]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                      </svg>
-                      <span className="text-sm truncate">Elegir documento</span>
-                      <input 
-                        type="file" 
-                        name="file" 
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                        required 
-                        onChange={(e) => {
-                          // Update the label text with the selected file name
-                          if (e.target.files && e.target.files[0]) {
-                            const fileName = e.target.files[0].name;
-                            const label = e.target.previousElementSibling as HTMLElement;
-                            if (label && label.tagName === 'SPAN') {
-                              label.textContent = fileName.length > 20 ? fileName.substring(0, 17) + '...' : fileName;
-                            }
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <button
-                    type="submit"
-                    className="py-2 px-4 bg-[#712442] text-white font-semibold rounded-md hover:bg-[#712442]/80 transition-colors disabled:opacity-60"
-                    disabled={uploadingId === cat.id}
-                  >
-                    {uploadingId === cat.id ? 'Subiendo...' : 'Subir archivo'}
-                  </button>
-                </form>
-              </div>
-            ))
+              );
+            })()
           )}
         </div>
       </div>

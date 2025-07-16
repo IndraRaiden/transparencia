@@ -17,32 +17,51 @@ interface Categoria {
   descripcion?: string;
 }
 
+interface Subcategoria {
+  id: string;
+  nombre: string;
+  categoria: number;
+  created_at?: string;
+}
+
 interface Documento {
   id: string;
   nombre: string;
   url: string;
-  categoria_id: number;
+  subcategoria_id: string;
   created_at?: string;
 }
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([]);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<Record<number, string>>({});
+  
+  // Handle subcategory selection
+  const handleSubcategoryChange = (categoriaId: number, subcategoriaId: string) => {
+    setSelectedSubcategories(prev => ({
+      ...prev,
+      [categoriaId]: subcategoriaId
+    }));
+  };
 
   useEffect(() => {
     setIsLoaded(true);
     
-    // Fetch categories and documents
+    // Fetch categories, subcategories, and documents
     async function fetchData() {
       try {
-        const [{ data: categoriasData }, { data: docsData }] = await Promise.all([
+        const [{ data: categoriasData }, { data: subcategoriasData }, { data: docsData }] = await Promise.all([
           supabase.from('categorias').select('*').order('nombre'),
+          supabase.from('subcategorias').select('*').order('nombre'),
           supabase.from('documentos').select('*')
         ]);
         
         setCategorias(categoriasData || []);
+        setSubcategorias(subcategoriasData || []);
         setDocumentos(docsData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -93,37 +112,83 @@ export default function Home() {
           />
         </div>
         
-        {/* Documentos por Categoría - displayed in reverse order */}
-        {[...categorias].reverse().map((categoria, index) => (
-          <div key={categoria.id} className={`transition-all duration-300 delay-${500 + (index * 100)} ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-            <DropdownMenu
-              title={categoria.nombre}
-              icon="📁"
-              className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-full overflow-y-auto">
-                {documentos
-                  .filter(doc => doc.categoria_id === categoria.id)
-                  .map(doc => (
-                    <a 
-                      key={doc.id} 
-                      href={doc.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-3 border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 transition-colors flex items-center gap-2"
-                    >
-                      <span className="text-blue-600 text-sm">📄</span>
-                      <span className="text-gray-700">{doc.nombre}</span>
-                    </a>
-                  ))
-                }
-                {documentos.filter(doc => doc.categoria_id === categoria.id).length === 0 && (
-                  <div className="text-gray-500 italic text-sm p-3">No hay documentos en esta categoría</div>
-                )}
-              </div>
-            </DropdownMenu>
-          </div>
-        ))}
+        {/* Categorías con Subcategorías y Documentos */}
+        {[...categorias].reverse().map((categoria, index) => {
+          // Get subcategories for this category
+          const categorySubcategories = subcategorias.filter(sub => sub.categoria === categoria.id);
+          const selectedSubcategoryId = selectedSubcategories[categoria.id] || '';
+          // Get documents for selected subcategory
+          const selectedSubcategoryDocuments = selectedSubcategoryId ? 
+            documentos.filter(doc => doc.subcategoria_id === selectedSubcategoryId) : [];
+          
+          return (
+            <div key={categoria.id} className={`transition-all duration-300 delay-${500 + (index * 100)} ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+              <DropdownMenu
+                title={categoria.nombre}
+                icon="📚"
+                className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
+              >
+                <div className="space-y-6 px-2">
+                  {categorySubcategories.length > 0 ? (
+                    <>
+                      {/* Subcategory dropdown selector */}
+                      <div className="w-full max-w-md">
+                        <label htmlFor={`subcategoria-${categoria.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                          Seleccionar subcategoría:
+                        </label>
+                        <select
+                          id={`subcategoria-${categoria.id}`}
+                          value={selectedSubcategoryId}
+                          onChange={(e) => handleSubcategoryChange(categoria.id, e.target.value)}
+                          className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">-- Seleccione una subcategoría --</option>
+                          {categorySubcategories.map(subcategoria => (
+                            <option key={subcategoria.id} value={subcategoria.id}>
+                              {subcategoria.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Documents grid */}
+                      {selectedSubcategoryId ? (
+                        <div className="mt-4">
+                          <h3 className="font-medium text-gray-800 mb-3">
+                            Documentos disponibles:
+                          </h3>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {selectedSubcategoryDocuments.length > 0 ? (
+                              selectedSubcategoryDocuments.map(doc => (
+                                <a 
+                                  key={doc.id} 
+                                  href={doc.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="p-3 border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-200 transition-colors flex items-center gap-2"
+                                >
+                                  <span className="text-blue-600 text-sm">📄</span>
+                                  <span className="text-gray-700 text-sm">{doc.nombre}</span>
+                                </a>
+                              ))
+                            ) : (
+                              <div className="text-gray-500 italic text-sm p-3 col-span-3">No hay documentos en esta subcategoría</div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-gray-500 italic text-sm p-3">Seleccione una subcategoría para ver los documentos</div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-gray-500 italic text-sm p-3">No hay subcategorías disponibles</div>
+                  )}
+                </div>
+              </DropdownMenu>
+            </div>
+          );
+        })}
         </div>
         
         {/* Footer Section */}
