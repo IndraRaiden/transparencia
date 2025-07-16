@@ -114,8 +114,15 @@ export default function Home() {
         
         {/* Categorías con Subcategorías y Documentos */}
         {[...categorias].reverse().map((categoria, index) => {
-          // Get subcategories for this category
-          const categorySubcategories = subcategorias.filter(sub => sub.categoria === categoria.id);
+          // Get subcategories for this category and sort them by numerical value in their name
+          const categorySubcategories = subcategorias
+            .filter(sub => sub.categoria === categoria.id)
+            .sort((a, b) => {
+              // Extract numbers from the subcategory names and compare them
+              const numA = parseInt(a.nombre.match(/\d+/)?.[0] || '0');
+              const numB = parseInt(b.nombre.match(/\d+/)?.[0] || '0');
+              return numA - numB;
+            });
           const selectedSubcategoryId = selectedSubcategories[categoria.id] || '';
           // Get documents for selected subcategory
           const selectedSubcategoryDocuments = selectedSubcategoryId ? 
