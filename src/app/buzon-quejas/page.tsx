@@ -5,11 +5,10 @@ import Header from "../components/Header";
 
 export default function BuzonQuejas() {
   const [formState, setFormState] = useState({
+    fecha: "",
     nombre: "",
-    email: "",
-    telefono: "",
-    asunto: "",
-    mensaje: "",
+    correoSolicitante: "",
+    informacionSolicitada: "",
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,11 +35,10 @@ export default function BuzonQuejas() {
       
       // Reset form and show success message
       setFormState({
+        fecha: "",
         nombre: "",
-        email: "",
-        telefono: "",
-        asunto: "",
-        mensaje: "",
+        correoSolicitante: "",
+        informacionSolicitada: "",
       });
       setSubmitSuccess(true);
       
@@ -66,8 +64,8 @@ export default function BuzonQuejas() {
           <div className="h-1 w-32 bg-[#712442] mb-6"></div>
           
           <p className="text-lg text-gray-600 mb-8">
-            Utilice este formulario para enviar sus quejas, sugerencias o comentarios. 
-            Nos comprometemos a revisar y dar seguimiento a cada mensaje recibido.
+            Utilice este formulario para solicitar información pública. 
+            Nos comprometemos a revisar y dar seguimiento a cada solicitud recibida.
           </p>
           
           {submitSuccess && (
@@ -90,84 +88,66 @@ export default function BuzonQuejas() {
           )}
           
           <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre completo *
-                </label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={formState.nombre}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ingrese su nombre completo"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Correo electrónico *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formState.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="ejemplo@correo.com"
-                />
-              </div>
-            </div>
-            
             <div className="mb-6">
-              <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono (opcional)
+              <label htmlFor="fecha" className="block text-sm font-medium text-gray-700 mb-1">
+                Fecha *
               </label>
               <input
-                type="tel"
-                id="telefono"
-                name="telefono"
-                value={formState.telefono}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="(123) 456-7890"
-              />
-            </div>
-            
-            <div className="mb-6">
-              <label htmlFor="asunto" className="block text-sm font-medium text-gray-700 mb-1">
-                Asunto *
-              </label>
-              <input
-                type="text"
-                id="asunto"
-                name="asunto"
-                value={formState.asunto}
+                type="date"
+                id="fecha"
+                name="fecha"
+                value={formState.fecha}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Asunto de su mensaje"
               />
             </div>
             
             <div className="mb-6">
-              <label htmlFor="mensaje" className="block text-sm font-medium text-gray-700 mb-1">
-                Mensaje *
+              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
+                Nombre completo *
+              </label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={formState.nombre}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ingrese su nombre completo"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="correoSolicitante" className="block text-sm font-medium text-gray-700 mb-1">
+                Correo solicitante *
+              </label>
+              <input
+                type="email"
+                id="correoSolicitante"
+                name="correoSolicitante"
+                value={formState.correoSolicitante}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="ejemplo@correo.com"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="informacionSolicitada" className="block text-sm font-medium text-gray-700 mb-1">
+                Información solicitada *
               </label>
               <textarea
-                id="mensaje"
-                name="mensaje"
-                value={formState.mensaje}
+                id="informacionSolicitada"
+                name="informacionSolicitada"
+                value={formState.informacionSolicitada}
                 onChange={handleChange}
                 required
                 rows={5}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Escriba su mensaje detallado aquí..."
+                placeholder="Describa detalladamente la información que solicita..."
               />
             </div>
             
@@ -195,39 +175,7 @@ export default function BuzonQuejas() {
             </div>
           </form>
           
-          <div className="mt-12 p-6 bg-gray-50 rounded-lg border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Información adicional</h2>
-            <p className="text-gray-600 mb-4">
-              También puede contactarnos directamente a través de los siguientes medios:
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-5 w-5 text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <span className="ml-2 text-gray-700">transparencia@gobierno.gob.mx</span>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-5 w-5 text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <span className="ml-2 text-gray-700">(123) 456-7890</span>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-5 w-5 text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <span className="ml-2 text-gray-700">Av. Principal #123, Centro, CP 12345</span>
-              </div>
-            </div>
-          </div>
+
         </div>
         
         {/* Footer Section */}
