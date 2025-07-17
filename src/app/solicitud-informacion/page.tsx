@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Header from "../components/Header";
 
-export default function BuzonQuejas() {
+export default function SolicitudInformacion() {
   const [formState, setFormState] = useState({
     fecha: "",
     nombre: "",
     correoSolicitante: "",
-    mensaje: "",
+    telefono: "",
+    tipoInformacion: "",
+    descripcionSolicitud: "",
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,31 +31,18 @@ export default function BuzonQuejas() {
     setSubmitError("");
     
     try {
-      // Send form data to Formspree
-      const response = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fecha: formState.fecha,
-          nombre: formState.nombre,
-          correo: formState.correoSolicitante,
-          mensaje: formState.mensaje,
-          _subject: "Nueva queja/sugerencia desde el portal de transparencia"
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
+      // Here you would integrate with your backend API
+      // For now we'll simulate a successful submission
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Reset form and show success message
       setFormState({
         fecha: "",
         nombre: "",
         correoSolicitante: "",
-        mensaje: "",
+        telefono: "",
+        tipoInformacion: "",
+        descripcionSolicitud: "",
       });
       setSubmitSuccess(true);
       
@@ -63,7 +52,7 @@ export default function BuzonQuejas() {
       }, 5000);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setSubmitError("Ocurrió un error al enviar el formulario. Por favor intente de nuevo.");
+      setSubmitError("Ocurrió un error al enviar la solicitud. Por favor intente de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -75,12 +64,12 @@ export default function BuzonQuejas() {
         <Header />
         
         <div className="mt-6 mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Buzón de Quejas</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Solicitud de Información</h1>
           <div className="h-1 w-32 bg-[#712442] mb-6"></div>
           
           <p className="text-lg text-gray-600 mb-8">
-            Utilice este formulario para enviar quejas o sugerencias. 
-            Nos comprometemos a revisar y dar seguimiento a cada mensaje recibido.
+            Utilice este formulario para solicitar información pública. 
+            Todas las solicitudes serán procesadas de acuerdo con la Ley de Transparencia y Acceso a la Información Pública.
           </p>
           
           {submitSuccess && (
@@ -89,8 +78,8 @@ export default function BuzonQuejas() {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <div>
-                <p className="font-medium">¡Mensaje enviado con éxito!</p>
-                <p className="text-sm">Gracias por contactarnos. Su mensaje ha sido recibido y será atendido a la brevedad.</p>
+                <p className="font-medium">¡Solicitud enviada con éxito!</p>
+                <p className="text-sm">Gracias por su solicitud. Su petición ha sido recibida y será procesada en los plazos establecidos por la ley.</p>
               </div>
             </div>
           )}
@@ -102,15 +91,10 @@ export default function BuzonQuejas() {
             </div>
           )}
           
-          <form 
-            action="https://formspree.io/f/YOUR_FORM_ID" 
-            method="POST"
-            onSubmit={handleSubmit} 
-            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
-          >
+          <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <div className="mb-6">
               <label htmlFor="fecha" className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha *
+                Fecha de solicitud *
               </label>
               <input
                 type="date"
@@ -125,7 +109,7 @@ export default function BuzonQuejas() {
             
             <div className="mb-6">
               <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre completo *
+                Nombre completo del solicitante *
               </label>
               <input
                 type="text"
@@ -156,18 +140,55 @@ export default function BuzonQuejas() {
             </div>
             
             <div className="mb-6">
-              <label htmlFor="mensaje" className="block text-sm font-medium text-gray-700 mb-1">
-                Mensaje o queja *
+              <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                Teléfono de contacto
+              </label>
+              <input
+                type="tel"
+                id="telefono"
+                name="telefono"
+                value={formState.telefono}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="(000) 000-0000"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="tipoInformacion" className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo de información solicitada *
+              </label>
+              <select
+                id="tipoInformacion"
+                name="tipoInformacion"
+                value={formState.tipoInformacion}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Seleccione una opción</option>
+                <option value="presupuesto">Información presupuestaria</option>
+                <option value="contratos">Contratos y licitaciones</option>
+                <option value="personal">Directorio de funcionarios</option>
+                <option value="programas">Programas y servicios</option>
+                <option value="normatividad">Normatividad</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="descripcionSolicitud" className="block text-sm font-medium text-gray-700 mb-1">
+                Descripción detallada de la información solicitada *
               </label>
               <textarea
-                id="mensaje"
-                name="mensaje"
-                value={formState.mensaje}
+                id="descripcionSolicitud"
+                name="descripcionSolicitud"
+                value={formState.descripcionSolicitud}
                 onChange={handleChange}
                 required
                 rows={5}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Describa detalladamente su queja o sugerencia..."
+                placeholder="Describa con la mayor precisión posible la información que solicita..."
               />
             </div>
             
@@ -189,7 +210,7 @@ export default function BuzonQuejas() {
                     Enviando...
                   </span>
                 ) : (
-                  "Enviar mensaje"
+                  "Enviar solicitud"
                 )}
               </button>
             </div>

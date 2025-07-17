@@ -112,6 +112,16 @@ export default function Home() {
           />
         </div>
         
+        {/* Solicitud de Información */}
+        <div className={`transition-all duration-300 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+          <LinkCard 
+            href="/solicitud-informacion" 
+            text="Solicitud de Información" 
+            icon="📋"
+            className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-blue-500 p-4 rounded-md"
+          />
+        </div>
+        
         {/* Categorías con Subcategorías y Documentos */}
         {[...categorias].reverse().map((categoria, index) => {
           // Get subcategories for this category and sort them by numerical value in their name
@@ -202,6 +212,7 @@ export default function Home() {
         <footer className="mt-16 py-8 border-t border-gray-200 text-center text-gray-600">
           <div className="flex flex-col items-center">
             <p>© {new Date().getFullYear()} UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION | Gobierno del Estado</p>
+            <p className="mt-2 font-semibold">MUNICIPIO DE PIEDRAS NEGRAS, COAHUILA.</p>
           </div>
         </footer>
       </div>
