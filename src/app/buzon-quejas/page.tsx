@@ -30,7 +30,7 @@ export default function BuzonQuejas() {
     
     try {
       // Send form data to Formspree
-      const response = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
+      const response = await fetch("https://formspree.io/f/mdkdegev", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +103,7 @@ export default function BuzonQuejas() {
           )}
           
           <form 
-            action="https://formspree.io/f/YOUR_FORM_ID" 
+            action="https://formspree.io/f/mdkdegev" 
             method="POST"
             onSubmit={handleSubmit} 
             className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"

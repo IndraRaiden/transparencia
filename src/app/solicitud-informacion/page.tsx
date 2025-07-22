@@ -31,9 +31,26 @@ export default function SolicitudInformacion() {
     setSubmitError("");
     
     try {
-      // Here you would integrate with your backend API
-      // For now we'll simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Send form data to Formspree
+      const response = await fetch("https://formspree.io/f/movledde", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fecha: formState.fecha,
+          nombre: formState.nombre,
+          correo: formState.correoSolicitante,
+          telefono: formState.telefono,
+          tipoInformacion: formState.tipoInformacion,
+          descripcionSolicitud: formState.descripcionSolicitud,
+          _subject: "Nueva solicitud de información desde el portal de transparencia"
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
       
       // Reset form and show success message
       setFormState({
@@ -91,7 +108,11 @@ export default function SolicitudInformacion() {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <form 
+            action="https://formspree.io/f/movledde" 
+            method="POST"
+            onSubmit={handleSubmit} 
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <div className="mb-6">
               <label htmlFor="fecha" className="block text-sm font-medium text-gray-700 mb-1">
                 Fecha de solicitud *
