@@ -199,7 +199,7 @@ export default function BuzonQuejas() {
         {/* Footer Section */}
         <footer className="mt-16 py-8 border-t border-gray-200 text-center text-gray-600">
           <div className="flex flex-col items-center">
-            <p>© {new Date().getFullYear()} UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION | Gobierno del Estado</p>
+            <p>© {new Date().getFullYear()} UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION</p>
             <p className="mt-2 font-semibold">MUNICIPIO DE PIEDRAS NEGRAS, COAHUILA.</p>
           </div>
         </footer>
