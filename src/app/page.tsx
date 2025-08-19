@@ -91,7 +91,7 @@ export default function Home() {
             
             <div className="relative z-10">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 text-center">UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION</h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 mt-4">Acceso a información pública, recursos y servicios para la transparencia gubernamental.</p>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 mt-4">Plataforma nacional</p>
             
               <div className="max-w-2xl mx-auto">
                 <SearchBox placeholder="Buscar en el portal de transparencia..." />
@@ -106,7 +106,7 @@ export default function Home() {
         <div className={`transition-all duration-300 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
           <LinkCard 
             href="/buzon-quejas" 
-            text="Buzón de quejas" 
+            text="Denuncia o sugerencia" 
             icon="⚠️"
             className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-yellow-500 p-4 rounded-md"
           />

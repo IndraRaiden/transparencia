@@ -75,7 +75,7 @@ export default function BuzonQuejas() {
         <Header />
         
         <div className="mt-6 mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Buzón de Quejas</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Denuncia o sugerencia</h1>
           <div className="h-1 w-32 bg-[#712442] mb-6"></div>
           
           <p className="text-lg text-gray-600 mb-8">
