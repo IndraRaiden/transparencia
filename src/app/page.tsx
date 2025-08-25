@@ -102,28 +102,25 @@ export default function Home() {
         
         <div className={`flex flex-col gap-6 transition-all duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
 
-        {/* Buzón de Quejas */}
-        <div className={`transition-all duration-300 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <LinkCard 
-            href="/buzon-quejas" 
-            text="Denuncia o sugerencia" 
-            icon="⚠️"
-            className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-yellow-500 p-4 rounded-md"
-          />
-        </div>
-        
-        {/* Solicitud de Información */}
-        <div className={`transition-all duration-300 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-          <LinkCard 
-            href="/solicitud-informacion" 
-            text="Solicitud de Información" 
-            icon="📋"
-            className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-blue-500 p-4 rounded-md"
-          />
-        </div>
-        
-        {/* Categorías con Subcategorías y Documentos */}
-        {[...categorias].reverse().map((categoria, index) => {
+        {/* Articulo 21, 22, 28 sections first */}
+        {[...categorias]
+          .filter(cat => {
+            const name = cat.nombre;
+            return name === "IPO de la Ley estatal de transparencia y ley general de transparencia" || 
+                   name === "Publicidad oficial" || 
+                   name === "Obligaciones específicas de los municipios";
+          })
+          .sort((a, b) => {
+            // Custom sorting for these three specific categories
+            const getOrder = (cat: Categoria) => {
+              if (cat.nombre === "IPO de la Ley estatal de transparencia y ley general de transparencia") return 1; // Articulo 21
+              if (cat.nombre === "Publicidad oficial") return 2; // Articulo 22
+              if (cat.nombre === "Obligaciones específicas de los municipios") return 3; // Articulo 28
+              return 99; // Others
+            };
+            return getOrder(a) - getOrder(b);
+          })
+          .map((categoria, index) => {
           // Get subcategories for this category and sort them by numerical value in their name
           const categorySubcategories = subcategorias
             .filter(sub => sub.categoria === categoria.id)
@@ -141,7 +138,11 @@ export default function Home() {
           return (
             <div key={categoria.id} className={`transition-all duration-300 delay-${500 + (index * 100)} ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
               <DropdownMenu
-                title={categoria.nombre}
+                title={categoria.nombre === "Publicidad oficial" ? "Articulo 22" : 
+                       categoria.nombre === "Obligaciones específicas de los municipios" ? "Articulo 28" : 
+                       categoria.nombre === "IPO de la Ley estatal de transparencia y ley general de transparencia" ? "Articulo 21" : 
+                       categoria.nombre === "Información complementaria del artículo 70 Ley general de transparencia" ? "Reforma ley de acceso a la informacion 2025 actualizada" : 
+                       categoria.nombre}
                 icon="📚"
                 className="bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 border-l-4 border-l-[#712442] p-4 rounded-md"
               >
@@ -206,6 +207,36 @@ export default function Home() {
             </div>
           );
         })}
+          
+          {/* Contacto */}
+          <div className={`transition-all duration-300 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+            <LinkCard 
+              href="/contacto" 
+              text="Contacto" 
+              icon="📞"
+              className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-green-500 p-4 rounded-md"
+            />
+          </div>
+
+          {/* Buzon de Quejas */}
+          <div className={`transition-all duration-300 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+            <LinkCard 
+              href="/buzon-quejas" 
+              text="Denuncia o sugerencia" 
+              icon="⚠️"
+              className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-yellow-500 p-4 rounded-md"
+            />
+          </div>
+        
+          {/* Solicitud de Información */}
+          <div className={`transition-all duration-300 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+            <LinkCard 
+              href="/solicitud-informacion" 
+              text="Solicitud de Información" 
+              icon="📋"
+              className="hover:bg-gray-50 transition-all bg-white border border-gray-200 hover:border-gray-300 border-l-4 border-l-blue-500 p-4 rounded-md"
+            />
+          </div>
         </div>
         
         {/* Footer Section */}
