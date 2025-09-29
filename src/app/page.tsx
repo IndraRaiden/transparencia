@@ -244,6 +244,10 @@ export default function Home() {
           <div className="flex flex-col items-center">
             <p>© {new Date().getFullYear()} UNIDAD DE TRANSPARENCIA Y ACCESO A LA INFORMACION</p>
             <p className="mt-2 font-semibold">MUNICIPIO DE PIEDRAS NEGRAS, COAHUILA.</p>
+            <p className="mt-2">Avenida las Américas, sin número, colonia Vistahermosa</p>
+            <p className="mt-2">
+              Tel: <a href="tel:8781120274" className="text-blue-600 hover:text-blue-800 hover:underline transition-colors">878 112 0274</a>
+            </p>
           </div>
         </footer>
       </div>
